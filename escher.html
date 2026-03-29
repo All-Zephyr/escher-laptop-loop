@@ -1,30 +1,381 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Escher Tool</title>
+  <title>Escher Laptop Loop Editor</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0c10;
+      --panel: #161922;
+      --text: #eef1f7;
+      --muted: #a5adbf;
+      --accent: #ff3b3b;
+      --border: #2d3442;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at top, #1c2230, var(--bg) 45%);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1320px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 360px 1fr;
+    }
+    .panel {
+      border: 1px solid var(--border);
+      background: color-mix(in oklab, var(--panel), #000 8%);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    h1 { margin: 0 0 8px; font-size: 1.2rem; }
+    .small { color: var(--muted); margin: 0 0 14px; font-size: .92rem; line-height: 1.35; }
+    .control { margin-bottom: 10px; }
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: .9rem;
+    }
+    input, button { width: 100%; }
+    input[type="range"] { accent-color: var(--accent); }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .pt {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+      background: #11141c;
+    }
+    .pt h4 { margin: 0 0 6px; font-size: .78rem; color: var(--muted); }
+    button {
+      border: 1px solid #495267;
+      background: #212735;
+      color: var(--text);
+      border-radius: 9px;
+      padding: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #000;
+      image-rendering: pixelated;
+      touch-action: none;
+      cursor: crosshair;
+    }
+    .status { color: var(--muted); font-size: .9rem; margin-bottom: 8px; }
+    @media (max-width: 1040px) { .wrap { grid-template-columns: 1fr; } }
+  </style>
 </head>
-<body style="font-family:Arial;padding:20px">
-  <h1>Escher Tool</h1>
-  <p>Upload image:</p>
-  <input id="file" type="file" accept="image/*">
-  <br><br>
-  <canvas id="c" width="900" height="900" style="max-width:100%;border:1px solid #ccc"></canvas>
+<body>
+  <main class="wrap">
+    <section class="panel">
+      <h1>Escher Laptop Loop Editor</h1>
+      <p class="small">Upload your base image, then drag the 4 red corner handles on the canvas (or use the numeric controls) to place the laptop screen area. The output updates live so you can tune the recursive loop effect.</p>
+
+      <div class="control">
+        <label for="file">Base image</label>
+        <input id="file" type="file" accept="image/*" />
+      </div>
+
+      <div class="control">
+        <label for="depth"><span>Recursion depth</span><strong id="depthVal">6</strong></label>
+        <input id="depth" type="range" min="1" max="14" value="6" />
+      </div>
+
+      <div class="control">
+        <label for="fade"><span>Fade per layer</span><strong id="fadeVal">0.92</strong></label>
+        <input id="fade" type="range" min="0.70" max="1" step="0.01" value="0.92" />
+      </div>
+
+      <div class="control">
+        <label for="line"><span>Guide visibility</span><strong id="lineVal">0.90</strong></label>
+        <input id="line" type="range" min="0" max="1" step="0.05" value="0.90" />
+      </div>
+
+      <div class="control">
+        <label>Quad coordinates (0 to 1, normalized)</label>
+        <div class="grid4">
+          <div class="pt"><h4>TL</h4><input id="tlx" type="number" min="0" max="1" step="0.001"><input id="tly" type="number" min="0" max="1" step="0.001"></div>
+          <div class="pt"><h4>TR</h4><input id="trx" type="number" min="0" max="1" step="0.001"><input id="try" type="number" min="0" max="1" step="0.001"></div>
+          <div class="pt"><h4>BR</h4><input id="brx" type="number" min="0" max="1" step="0.001"><input id="bry" type="number" min="0" max="1" step="0.001"></div>
+          <div class="pt"><h4>BL</h4><input id="blx" type="number" min="0" max="1" step="0.001"><input id="bly" type="number" min="0" max="1" step="0.001"></div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <button id="reset">Reset quad</button>
+        <button id="download">Download PNG</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="status" id="status">Load an image to start. Then drag red points to align to the laptop screen corners.</div>
+      <canvas id="canvas" width="1200" height="900"></canvas>
+    </section>
+  </main>
+
   <script>
-    const file = document.getElementById('file');
-    const c = document.getElementById('c');
-    const ctx = c.getContext('2d');
-    file.onchange = e => {
-      const f = e.target.files[0];
-      if (!f) return;
+    const el = {
+      file: document.getElementById('file'),
+      depth: document.getElementById('depth'),
+      fade: document.getElementById('fade'),
+      line: document.getElementById('line'),
+      depthVal: document.getElementById('depthVal'),
+      fadeVal: document.getElementById('fadeVal'),
+      lineVal: document.getElementById('lineVal'),
+      reset: document.getElementById('reset'),
+      download: document.getElementById('download'),
+      status: document.getElementById('status'),
+      canvas: document.getElementById('canvas'),
+      tlx: document.getElementById('tlx'), tly: document.getElementById('tly'),
+      trx: document.getElementById('trx'), try: document.getElementById('try'),
+      brx: document.getElementById('brx'), bry: document.getElementById('bry'),
+      blx: document.getElementById('blx'), bly: document.getElementById('bly')
+    };
+
+    const ctx = el.canvas.getContext('2d');
+    const base = document.createElement('canvas');
+    const bctx = base.getContext('2d');
+    const bufA = document.createElement('canvas');
+    const aCtx = bufA.getContext('2d');
+    const bufB = document.createElement('canvas');
+    const bCtx = bufB.getContext('2d');
+
+    let loaded = false;
+    let dragging = -1;
+
+    const defaultQuad = [
+      { x: 0.42, y: 0.50 },
+      { x: 0.56, y: 0.49 },
+      { x: 0.58, y: 0.59 },
+      { x: 0.40, y: 0.60 }
+    ];
+    let quad = structuredClone(defaultQuad);
+
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+    function syncLabels() {
+      el.depthVal.textContent = el.depth.value;
+      el.fadeVal.textContent = Number(el.fade.value).toFixed(2);
+      el.lineVal.textContent = Number(el.line.value).toFixed(2);
+    }
+
+    function syncInputsFromQuad() {
+      el.tlx.value = quad[0].x.toFixed(3); el.tly.value = quad[0].y.toFixed(3);
+      el.trx.value = quad[1].x.toFixed(3); el.try.value = quad[1].y.toFixed(3);
+      el.brx.value = quad[2].x.toFixed(3); el.bry.value = quad[2].y.toFixed(3);
+      el.blx.value = quad[3].x.toFixed(3); el.bly.value = quad[3].y.toFixed(3);
+    }
+
+    function syncQuadFromInputs() {
+      quad[0].x = clamp(Number(el.tlx.value), 0, 1); quad[0].y = clamp(Number(el.tly.value), 0, 1);
+      quad[1].x = clamp(Number(el.trx.value), 0, 1); quad[1].y = clamp(Number(el.try.value), 0, 1);
+      quad[2].x = clamp(Number(el.brx.value), 0, 1); quad[2].y = clamp(Number(el.bry.value), 0, 1);
+      quad[3].x = clamp(Number(el.blx.value), 0, 1); quad[3].y = clamp(Number(el.bly.value), 0, 1);
+    }
+
+    function toPx(p) { return { x: p.x * base.width, y: p.y * base.height }; }
+
+    function solveAffine(s0, s1, s2, d0, d1, d2) {
+      const x0 = s0.x, y0 = s0.y, x1 = s1.x, y1 = s1.y, x2 = s2.x, y2 = s2.y;
+      const u0 = d0.x, v0 = d0.y, u1 = d1.x, v1 = d1.y, u2 = d2.x, v2 = d2.y;
+      const det = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1);
+      if (Math.abs(det) < 1e-6) return null;
+
+      const a = (u0 * (y1 - y2) + u1 * (y2 - y0) + u2 * (y0 - y1)) / det;
+      const c = (u0 * (x2 - x1) + u1 * (x0 - x2) + u2 * (x1 - x0)) / det;
+      const e = (u0 * (x1 * y2 - x2 * y1) + u1 * (x2 * y0 - x0 * y2) + u2 * (x0 * y1 - x1 * y0)) / det;
+
+      const b = (v0 * (y1 - y2) + v1 * (y2 - y0) + v2 * (y0 - y1)) / det;
+      const d = (v0 * (x2 - x1) + v1 * (x0 - x2) + v2 * (x1 - x0)) / det;
+      const f = (v0 * (x1 * y2 - x2 * y1) + v1 * (x2 * y0 - x0 * y2) + v2 * (x0 * y1 - x1 * y0)) / det;
+
+      return { a, b, c, d, e, f };
+    }
+
+    function drawTexturedTri(ctx2d, img, s0, s1, s2, d0, d1, d2, alpha) {
+      const m = solveAffine(s0, s1, s2, d0, d1, d2);
+      if (!m) return;
+      ctx2d.save();
+      ctx2d.globalAlpha = alpha;
+      ctx2d.beginPath();
+      ctx2d.moveTo(d0.x, d0.y);
+      ctx2d.lineTo(d1.x, d1.y);
+      ctx2d.lineTo(d2.x, d2.y);
+      ctx2d.closePath();
+      ctx2d.clip();
+      ctx2d.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
+      ctx2d.drawImage(img, 0, 0);
+      ctx2d.restore();
+    }
+
+    function drawImageToQuad(ctx2d, img, q, alpha) {
+      const sw = img.width, sh = img.height;
+      const sTL = { x: 0, y: 0 }, sTR = { x: sw, y: 0 }, sBR = { x: sw, y: sh }, sBL = { x: 0, y: sh };
+      drawTexturedTri(ctx2d, img, sTL, sTR, sBR, q[0], q[1], q[2], alpha);
+      drawTexturedTri(ctx2d, img, sTL, sBR, sBL, q[0], q[2], q[3], alpha);
+    }
+
+    function render() {
+      if (!loaded) return;
+      const q = quad.map(toPx);
+      const depth = Number(el.depth.value);
+      const fade = Number(el.fade.value);
+
+      bufA.width = base.width; bufA.height = base.height;
+      bufB.width = base.width; bufB.height = base.height;
+      aCtx.setTransform(1, 0, 0, 1, 0, 0);
+      bCtx.setTransform(1, 0, 0, 1, 0, 0);
+      aCtx.clearRect(0, 0, base.width, base.height);
+      aCtx.drawImage(base, 0, 0);
+
+      for (let i = 0; i < depth; i++) {
+        bCtx.setTransform(1, 0, 0, 1, 0, 0);
+        bCtx.clearRect(0, 0, base.width, base.height);
+        bCtx.drawImage(aCtx.canvas, 0, 0);
+        drawImageToQuad(bCtx, aCtx.canvas, q, Math.pow(fade, i));
+        aCtx.setTransform(1, 0, 0, 1, 0, 0);
+        aCtx.clearRect(0, 0, base.width, base.height);
+        aCtx.drawImage(bCtx.canvas, 0, 0);
+      }
+
+      el.canvas.width = base.width;
+      el.canvas.height = base.height;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, base.width, base.height);
+      ctx.drawImage(aCtx.canvas, 0, 0);
+
+      const lineAlpha = Number(el.line.value);
+      if (lineAlpha > 0) {
+        ctx.save();
+        ctx.globalAlpha = lineAlpha;
+        ctx.strokeStyle = '#ff3b3b';
+        ctx.lineWidth = Math.max(2, base.width * 0.0025);
+        ctx.beginPath();
+        ctx.moveTo(q[0].x, q[0].y);
+        for (let i = 1; i < 4; i++) ctx.lineTo(q[i].x, q[i].y);
+        ctx.closePath();
+        ctx.stroke();
+
+        q.forEach((p, i) => {
+          ctx.fillStyle = i === dragging ? '#fff' : '#ff3b3b';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, Math.max(6, base.width * 0.006), 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.restore();
+      }
+    }
+
+    function loadImage(file) {
+      if (!file) return;
       const img = new Image();
       img.onload = () => {
-        c.width = img.width; c.height = img.height;
-        ctx.drawImage(img,0,0);
+        base.width = img.width;
+        base.height = img.height;
+        bctx.drawImage(img, 0, 0);
+        loaded = true;
+        el.status.textContent = `Loaded ${file.name} (${img.width}×${img.height}). Drag the red corner handles to align the laptop screen.`;
+        render();
       };
-      img.src = URL.createObjectURL(f);
-    };
+      img.src = URL.createObjectURL(file);
+    }
+
+    function canvasPoint(evt) {
+      const rect = el.canvas.getBoundingClientRect();
+      const sx = el.canvas.width / rect.width;
+      const sy = el.canvas.height / rect.height;
+      return { x: (evt.clientX - rect.left) * sx, y: (evt.clientY - rect.top) * sy };
+    }
+
+    function nearestHandle(pt) {
+      const px = quad.map(toPx);
+      let best = -1;
+      let bestD = Infinity;
+      px.forEach((p, i) => {
+        const d = Math.hypot(p.x - pt.x, p.y - pt.y);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      return bestD <= Math.max(20, base.width * 0.02) ? best : -1;
+    }
+
+    function onPointerDown(e) {
+      if (!loaded) return;
+      const pt = canvasPoint(e);
+      dragging = nearestHandle(pt);
+      if (dragging >= 0) {
+        el.canvas.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      }
+      render();
+    }
+
+    function onPointerMove(e) {
+      if (!loaded || dragging < 0) return;
+      const pt = canvasPoint(e);
+      quad[dragging] = {
+        x: clamp(pt.x / base.width, 0, 1),
+        y: clamp(pt.y / base.height, 0, 1)
+      };
+      syncInputsFromQuad();
+      render();
+    }
+
+    function onPointerUp(e) {
+      if (dragging >= 0) {
+        el.canvas.releasePointerCapture(e.pointerId);
+      }
+      dragging = -1;
+      render();
+    }
+
+    const numericInputs = [el.tlx, el.tly, el.trx, el.try, el.brx, el.bry, el.blx, el.bly];
+    numericInputs.forEach((n) => n.addEventListener('input', () => {
+      syncQuadFromInputs();
+      render();
+    }));
+
+    [el.depth, el.fade, el.line].forEach((s) => s.addEventListener('input', () => {
+      syncLabels();
+      render();
+    }));
+
+    el.file.addEventListener('change', (e) => loadImage(e.target.files?.[0]));
+
+    el.reset.addEventListener('click', () => {
+      quad = structuredClone(defaultQuad);
+      syncInputsFromQuad();
+      render();
+    });
+
+    el.download.addEventListener('click', () => {
+      if (!loaded) return;
+      const a = document.createElement('a');
+      a.href = el.canvas.toDataURL('image/png');
+      a.download = 'escher-laptop-loop.png';
+      a.click();
+    });
+
+    el.canvas.addEventListener('pointerdown', onPointerDown);
+    el.canvas.addEventListener('pointermove', onPointerMove);
+    el.canvas.addEventListener('pointerup', onPointerUp);
+    el.canvas.addEventListener('pointercancel', onPointerUp);
+
+    syncLabels();
+    syncInputsFromQuad();
   </script>
 </body>
 </html>
