@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Escher Laptop Loop Editor</title>
+  <title>Escher Infinite Zoom Editor</title>
   <style>
     :root {
       color-scheme: dark;
@@ -82,8 +82,8 @@
 <body>
   <main class="wrap">
     <section class="panel">
-      <h1>Escher Laptop Loop Editor</h1>
-      <p class="small">Upload your base image, then drag the 4 red corner handles on the canvas (or use the numeric controls) to place the laptop screen area. The output updates live so you can tune the recursive loop effect.</p>
+      <h1>Escher Infinite Zoom Editor</h1>
+      <p class="small">Upload one image, place the 4 corner handles over the "screen/window" region, and the app will recursively embed the image to create an Escher-style infinite zoom still.</p>
 
       <div class="control">
         <label for="file">Base image</label>
@@ -91,7 +91,7 @@
       </div>
 
       <div class="control">
-        <label for="depth"><span>Recursion depth</span><strong id="depthVal">6</strong></label>
+        <label for="depth"><span>Zoom steps</span><strong id="depthVal">6</strong></label>
         <input id="depth" type="range" min="1" max="14" value="6" />
       </div>
 
@@ -122,7 +122,7 @@
     </section>
 
     <section class="panel">
-      <div class="status" id="status">Load an image to start. Then drag red points to align to the laptop screen corners.</div>
+      <div class="status" id="status">Load one image, place the red corners, then adjust until the still looks Escherified.</div>
       <canvas id="canvas" width="1200" height="900"></canvas>
     </section>
   </main>
@@ -288,7 +288,7 @@
         base.height = img.height;
         bctx.drawImage(img, 0, 0);
         loaded = true;
-        el.status.textContent = `Loaded ${file.name} (${img.width}×${img.height}). Drag the red corner handles to align the laptop screen.`;
+        el.status.textContent = `Loaded ${file.name} (${img.width}×${img.height}). Drag the red corner handles to align the zoom portal area.`;
         render();
       };
       img.src = URL.createObjectURL(file);
@@ -365,7 +365,7 @@
       if (!loaded) return;
       const a = document.createElement('a');
       a.href = el.canvas.toDataURL('image/png');
-      a.download = 'escher-laptop-loop.png';
+      a.download = 'escher-infinite-zoom.png';
       a.click();
     });
 
