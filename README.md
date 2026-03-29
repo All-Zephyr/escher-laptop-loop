@@ -1,22 +1,25 @@
 # escher-laptop-loop
 
-Browser-based editor for turning a single image into an Escher-style infinite-zoom still.
+Easy website version of your Mathematica Escher recursion script.
 
-## Run locally on macOS
+## Quick start (Mac)
 
-1. Clone/download this repo.
-2. Open `escher.html` directly, or run:
+1. Open `escher.html` directly in browser, or run:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Then open <http://localhost:8080>.
+2. Visit <http://localhost:8080>.
+3. Upload your image and edit sliders live.
 
-## How to escherify one image
+## Controls mapped to your Mathematica code
 
-1. Upload your image.
-2. Drag the 4 red corner points to the portal/window/screen area where the recursive image should appear.
-3. Increase **Zoom steps** and tune **Fade per layer** until it looks right.
-4. Use numeric corner coordinates for precise tweaking (live updates).
-5. Download the final PNG.
+- **Center X / Center Y** -> `centerPx`
+- **Zoom** -> `zoom`
+- **Branch direction** -> `branchDir`
+- **q parameter** -> `q` (used to compute `alpha = 1 - i log(q)/(2π)`)
+- **Preview quality** -> speed vs detail (for faster live editing)
+
+Click on the preview image to set center quickly.
+Use **Download PNG** for full-quality output.
