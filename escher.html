@@ -3,86 +3,38 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Escherify v1 - Fresh Build 2026-03-31</title>
+  <title>Escherify v2 (Log Mapping)</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #10131a;
-      color: #eef2ff;
-    }
-    .top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      border-bottom: 1px solid #2d3548;
-      background: #161b26;
-      position: sticky;
-      top: 0;
-    }
-    .meta {
-      font-size: 12px;
-      color: #9facbf;
-      text-align: right;
-      line-height: 1.35;
-    }
-    .wrap {
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 14px;
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 12px;
-    }
-    .panel {
-      background: #161b26;
-      border: 1px solid #2d3548;
-      border-radius: 10px;
-      padding: 12px;
-    }
-    .control { margin-bottom: 10px; }
-    .control label {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-      font-size: 14px;
-      color: #d8deef;
-    }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    input, button { width: 100%; }
-    input[type="range"] { accent-color: #ff4d4d; }
-    button {
-      border: 1px solid #3f4a62;
-      background: #212a3c;
-      color: #eef2ff;
-      border-radius: 8px;
-      padding: 9px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    canvas {
-      width: 100%;
-      height: auto;
-      border-radius: 10px;
-      border: 1px solid #2d3548;
-      background: #0f141f;
-      display: block;
-    }
-    .status { color: #9facbf; font-size: 14px; margin-bottom: 8px; min-height: 20px; }
-    .hint { color: #9facbf; font-size: 13px; margin-top: 8px; }
-    @media (max-width: 980px) { .wrap { grid-template-columns: 1fr; } }
+    :root { --bg:#0f1320; --panel:#161d2e; --border:#2d3750; --text:#edf2ff; --muted:#a8b4cc; --accent:#ff4d4d; }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+    .top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#12192a;border-bottom:1px solid var(--border)}
+    .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.35}
+    .app{max-width:1320px;margin:0 auto;padding:14px;display:grid;grid-template-columns:350px 1fr;gap:12px}
+    .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px}
+    .control{margin-bottom:10px}
+    .control label{display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px}
+    input,button{width:100%}
+    input[type="range"]{accent-color:var(--accent)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    button{background:#202a40;border:1px solid #405076;color:var(--text);padding:9px;border-radius:8px;font-weight:700;cursor:pointer}
+    canvas{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:10px;background:#0a0f18}
+    .status{font-size:14px;color:var(--muted);min-height:20px;margin-bottom:8px}
+    .hint{font-size:13px;color:var(--muted);line-height:1.35}
+    @media (max-width:1000px){.app{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <header class="top">
-    <strong>Escherify v1 - Fresh Build</strong>
-    <div class="meta" id="meta">Version v1.1<br/>Last edit --</div>
+    <strong>Escherify v2 — logarithm mapping</strong>
+    <div class="meta" id="meta">Version v2<br/>Last edit --</div>
   </header>
 
-  <main class="wrap">
+  <main class="app">
     <section class="panel">
-      <p style="margin-top:0;color:#b8c3d8">Upload one image, tweak controls, and export one transformed image.</p>
+      <p class="hint">Math model (same structure as the classic construction):<br>
+      <code>z = z0 + R(θ) · zoom · exp( log((w-z0)·R(-θ)) / α )</code><br>
+      where <code>α = 1 - i·log(q)/(2π)</code>.</p>
 
       <div class="control">
         <label for="file">Image</label>
@@ -107,12 +59,12 @@
 
       <div class="control">
         <label for="branch"><span>Branch direction (°)</span><strong id="branchVal">160.0</strong></label>
-        <input id="branch" type="range" min="120" max="220" step="0.1" value="160" />
+        <input id="branch" type="range" min="0" max="360" step="0.1" value="160" />
       </div>
 
       <div class="control">
         <label for="q"><span>q parameter</span><strong id="qVal">22.584</strong></label>
-        <input id="q" type="range" min="2" max="40" step="0.001" value="22.5836845286" />
+        <input id="q" type="range" min="1.2" max="40" step="0.001" value="22.5836845286" />
       </div>
 
       <div class="control">
@@ -125,19 +77,16 @@
         <button id="download">Download PNG</button>
       </div>
 
-      <p class="hint">Tip: click the preview to place center quickly.</p>
+      <p class="hint">Click preview to set center quickly.</p>
     </section>
 
     <section class="panel">
-      <div class="status" id="status">No image loaded yet — showing demo preview.</div>
+      <div class="status" id="status">No image loaded yet.</div>
       <canvas id="canvas" width="900" height="900"></canvas>
     </section>
   </main>
 
   <script>
-    const APP_VERSION = 'v1.1 (fresh-build-2026-03-31)';
-    const defaults = { centerX: 600, centerY: 600, zoom: 0.8, branch: 160, q: 22.5836845286, quality: 0.7 };
-
     const el = {
       file: document.getElementById('file'),
       centerX: document.getElementById('centerX'),
@@ -159,11 +108,23 @@
       meta: document.getElementById('meta')
     };
 
+    const defaults = { centerX: 600, centerY: 600, zoom: 0.8, branch: 160, q: 22.5836845286, quality: 0.7 };
+
     const srcCanvas = document.createElement('canvas');
     const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
     const ctx = el.canvas.getContext('2d', { willReadFrequently: true });
     let loaded = false;
     let renderToken = 0;
+
+    const C = {
+      add: (a,b) => ({re:a.re+b.re, im:a.im+b.im}),
+      sub: (a,b) => ({re:a.re-b.re, im:a.im-b.im}),
+      mul: (a,b) => ({re:a.re*b.re-a.im*b.im, im:a.re*b.im+a.im*b.re}),
+      div: (a,b) => { const d=b.re*b.re+b.im*b.im; return {re:(a.re*b.re+a.im*b.im)/d, im:(a.im*b.re-a.re*b.im)/d}; },
+      abs: (a) => Math.hypot(a.re, a.im),
+      log: (a) => ({re:Math.log(Math.hypot(a.re,a.im)), im:Math.atan2(a.im,a.re)}),
+      exp: (a) => { const e=Math.exp(a.re); return {re:e*Math.cos(a.im), im:e*Math.sin(a.im)}; }
+    };
 
     function setLabels() {
       el.centerXVal.textContent = Math.round(el.centerX.value);
@@ -174,54 +135,56 @@
       el.qualityVal.textContent = Number(el.quality.value).toFixed(2);
     }
 
-    function drawDemoPreview() {
-      const w = el.canvas.width;
-      const h = el.canvas.height;
-      const g = ctx.createLinearGradient(0, 0, w, h);
-      g.addColorStop(0, '#2a3550');
-      g.addColorStop(1, '#10131a');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, w, h);
-      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-      for (let i = 0; i < 12; i++) {
-        const x = (w / 12) * i;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(w - x, h);
-        ctx.stroke();
-      }
-      ctx.fillStyle = '#eef2ff';
-      ctx.font = 'bold 28px Arial';
-      ctx.fillText('Escherify v1', 30, 60);
-      ctx.font = '16px Arial';
-      ctx.fillStyle = '#bcc8df';
-      ctx.fillText('Upload an image to transform it.', 30, 90);
+    function toComplex(px, py, n) {
+      return { re: -1 + 2 * (px - 1) / (n - 1), im: 1 - 2 * (py - 1) / (n - 1) };
     }
 
-    function toComplex(x, y, n) {
-      return { re: -1 + (2 * (x - 1)) / (n - 1), im: 1 - (2 * (y - 1)) / (n - 1) };
+    function toPixel(z, n) {
+      return { x: 1 + (z.re + 1) * (n - 1) / 2, y: 1 + (1 - z.im) * (n - 1) / 2 };
     }
 
-    function sampleBilinear(src, width, height, x, y) {
-      if (x < 1 || x > width || y < 1 || y > height) return [255, 255, 255];
+    function sampleBilinear(src, w, h, x, y) {
+      if (x < 1 || x > w || y < 1 || y > h) return [255,255,255,255];
       const fx = x - 1, fy = y - 1;
       const x0 = Math.floor(fx), y0 = Math.floor(fy);
-      const x1 = Math.min(x0 + 1, width - 1), y1 = Math.min(y0 + 1, height - 1);
+      const x1 = Math.min(x0 + 1, w - 1), y1 = Math.min(y0 + 1, h - 1);
       const dx = fx - x0, dy = fy - y0;
-      const i00 = (y0 * width + x0) * 4, i10 = (y0 * width + x1) * 4, i01 = (y1 * width + x0) * 4, i11 = (y1 * width + x1) * 4;
-      const rgb = [0, 0, 0];
+      const i00 = (y0*w + x0)*4, i10 = (y0*w + x1)*4, i01 = (y1*w + x0)*4, i11 = (y1*w + x1)*4;
+      const out = [0,0,0,255];
       for (let k = 0; k < 3; k++) {
-        const a = src[i00 + k] * (1 - dx) + src[i10 + k] * dx;
-        const b = src[i01 + k] * (1 - dx) + src[i11 + k] * dx;
-        rgb[k] = a * (1 - dy) + b * dy;
+        const a = src[i00+k]*(1-dx) + src[i10+k]*dx;
+        const b = src[i01+k]*(1-dx) + src[i11+k]*dx;
+        out[k] = a*(1-dy) + b*dy;
       }
-      return rgb;
+      return out;
     }
 
-    function render(forceFull = false) {
+    function srcMap(px, py, n, z0, zoom, theta, alpha) {
+      // Exactly: z = z0 + R(theta) * zoom * exp( log( (w-z0) * R(-theta) ) / alpha )
+      const w = toComplex(px, py, n);
+      const u = C.sub(w, z0);
+      const eps = 1e-12;
+      if (C.abs(u) < eps) return { x: Number(el.centerX.value), y: Number(el.centerY.value) };
+
+      const rotNeg = { re: Math.cos(-theta), im: Math.sin(-theta) };
+      const rotPos = { re: Math.cos(theta), im: Math.sin(theta) };
+      const u2 = C.mul(u, rotNeg);
+      const mapped = C.exp(C.div(C.log(u2), alpha));
+      const z = C.add(z0, C.mul({ re: zoom, im: 0 }, C.mul(rotPos, mapped)));
+      return toPixel(z, n);
+    }
+
+    function requestRender() {
+      if (!loaded) return;
+      const token = ++renderToken;
+      requestAnimationFrame(() => { if (token === renderToken) render(false); });
+    }
+
+    function render(forceFull) {
       if (!loaded) return;
       const n = srcCanvas.width;
-      const outN = Math.max(220, Math.floor(n * (forceFull ? 1 : Number(el.quality.value))));
+      const quality = forceFull ? 1 : Number(el.quality.value);
+      const outN = Math.max(220, Math.floor(n * quality));
       el.canvas.width = outN;
       el.canvas.height = outN;
 
@@ -229,65 +192,26 @@
       const out = ctx.createImageData(outN, outN);
       const dst = out.data;
 
-      const q = Number(el.q.value);
-      const alphaRe = 1;
-      const alphaIm = -Math.log(q) / (2 * Math.PI);
-      const alphaDen = alphaRe * alphaRe + alphaIm * alphaIm;
-      const theta = Number(el.branch.value) * Math.PI / 180;
-      const rotRe = Math.cos(theta), rotIm = Math.sin(theta);
-      const invRe = rotRe, invIm = -rotIm;
+      const z0 = toComplex(Number(el.centerX.value), Number(el.centerY.value), n);
       const zoom = Number(el.zoom.value);
-      const centerX = Number(el.centerX.value), centerY = Number(el.centerY.value);
-      const zCenter = toComplex(centerX, centerY, n);
-      const scale = (n - 1) / Math.max(1, outN - 1);
-      const pixScale = (n - 1) / 2;
-      const eps = 1e-12;
+      const theta = Number(el.branch.value) * Math.PI / 180;
+      const q = Number(el.q.value);
+      const alpha = { re: 1, im: -Math.log(q) / (2 * Math.PI) };
+
       const t0 = performance.now();
-
       for (let oy = 0; oy < outN; oy++) {
-        const py = 1 + oy * scale;
-        const wIm = 1 - (2 * (py - 1)) / (n - 1);
+        const py = 1 + oy * (n - 1) / Math.max(1, outN - 1);
         for (let ox = 0; ox < outN; ox++) {
-          const px = 1 + ox * scale;
-          const wRe = -1 + (2 * (px - 1)) / (n - 1);
-          const uRe = wRe - zCenter.re;
-          const uIm = wIm - zCenter.im;
-          let srcX = centerX, srcY = centerY;
-
-          if (Math.hypot(uRe, uIm) >= eps) {
-            const u2Re = uRe * invRe - uIm * invIm;
-            const u2Im = uRe * invIm + uIm * invRe;
-            const logRe = Math.log(Math.hypot(u2Re, u2Im));
-            const logIm = Math.atan2(u2Im, u2Re);
-            const divRe = (logRe * alphaRe + logIm * alphaIm) / alphaDen;
-            const divIm = (logIm * alphaRe - logRe * alphaIm) / alphaDen;
-            const expMag = Math.exp(divRe);
-            const expRe = expMag * Math.cos(divIm);
-            const expIm = expMag * Math.sin(divIm);
-            const mapRe = rotRe * expRe - rotIm * expIm;
-            const mapIm = rotRe * expIm + rotIm * expRe;
-            const zRe = zCenter.re + zoom * mapRe;
-            const zIm = zCenter.im + zoom * mapIm;
-            srcX = 1 + (zRe + 1) * pixScale;
-            srcY = 1 + (1 - zIm) * pixScale;
-          }
-
-          const rgb = sampleBilinear(src, n, n, srcX, srcY);
+          const px = 1 + ox * (n - 1) / Math.max(1, outN - 1);
+          const p = srcMap(px, py, n, z0, zoom, theta, alpha);
+          const rgba = sampleBilinear(src, n, n, p.x, p.y);
           const di = (oy * outN + ox) * 4;
-          dst[di] = rgb[0]; dst[di + 1] = rgb[1]; dst[di + 2] = rgb[2]; dst[di + 3] = 255;
+          dst[di] = rgba[0]; dst[di+1] = rgba[1]; dst[di+2] = rgba[2]; dst[di+3] = 255;
         }
       }
 
       ctx.putImageData(out, 0, 0);
-      el.status.textContent = `Rendered ${outN}×${outN} in ~${Math.round(performance.now() - t0)}ms`;
-    }
-
-    function requestRender() {
-      if (!loaded) return;
-      const token = ++renderToken;
-      requestAnimationFrame(() => {
-        if (token === renderToken) render(false);
-      });
+      el.status.textContent = `Rendered ${outN}×${outN} in ~${Math.round(performance.now()-t0)}ms`;
     }
 
     function loadImage(file) {
@@ -295,12 +219,14 @@
       const img = new Image();
       img.onload = () => {
         const n = Math.min(img.width, img.height, 1600);
-        srcCanvas.width = n; srcCanvas.height = n;
+        srcCanvas.width = n;
+        srcCanvas.height = n;
         srcCtx.clearRect(0, 0, n, n);
         srcCtx.drawImage(img, 0, 0, n, n);
-        el.centerX.max = n; el.centerY.max = n;
-        el.centerX.value = Math.round(Math.min(defaults.centerX, n));
-        el.centerY.value = Math.round(Math.min(defaults.centerY, n));
+        el.centerX.max = n;
+        el.centerY.max = n;
+        el.centerX.value = Math.min(defaults.centerX, n);
+        el.centerY.value = Math.min(defaults.centerY, n);
         loaded = true;
         setLabels();
         requestRender();
@@ -308,11 +234,8 @@
       img.src = URL.createObjectURL(file);
     }
 
-    el.file.addEventListener('change', (e) => {
-      const files = e.target && e.target.files ? e.target.files : [];
-      loadImage(files[0]);
-    });
-    [el.centerX, el.centerY, el.zoom, el.branch, el.q, el.quality].forEach((node) => {
+    el.file.addEventListener('change', (e) => loadImage(e.target.files && e.target.files[0]));
+    [el.centerX, el.centerY, el.zoom, el.branch, el.q, el.quality].forEach(node => {
       node.addEventListener('input', () => { setLabels(); requestRender(); });
     });
 
@@ -335,8 +258,8 @@
       el.quality.value = defaults.quality;
       if (loaded) {
         const n = srcCanvas.width;
-        el.centerX.value = Math.round(Math.min(defaults.centerX, n));
-        el.centerY.value = Math.round(Math.min(defaults.centerY, n));
+        el.centerX.value = Math.min(defaults.centerX, n);
+        el.centerY.value = Math.min(defaults.centerY, n);
       }
       setLabels();
       requestRender();
@@ -347,14 +270,23 @@
       render(true);
       const a = document.createElement('a');
       a.href = el.canvas.toDataURL('image/png');
-      a.download = 'escherify-v1.png';
+      a.download = 'escherify-v2.png';
       a.click();
       requestRender();
     });
 
-    drawDemoPreview();
-    const lastEdit = new Date(document.lastModified);
-    el.meta.innerHTML = `Version ${APP_VERSION}<br/>Last edit ${Number.isNaN(lastEdit.getTime()) ? 'Unknown' : lastEdit.toLocaleString()}`;
+    // Visible fallback so page is never blank
+    ctx.fillStyle = '#10182a';
+    ctx.fillRect(0, 0, el.canvas.width, el.canvas.height);
+    ctx.fillStyle = '#e7edff';
+    ctx.font = 'bold 30px Arial';
+    ctx.fillText('Escherify v2', 28, 60);
+    ctx.font = '16px Arial';
+    ctx.fillStyle = '#a8b4cc';
+    ctx.fillText('Upload an image to begin.', 28, 90);
+
+    const d = new Date(document.lastModified);
+    el.meta.innerHTML = `Version v2<br/>Last edit ${Number.isNaN(d.getTime()) ? 'Unknown' : d.toLocaleString()}`;
     setLabels();
   </script>
 </body>
