@@ -1,30 +1,27 @@
-# escher-laptop-loop
+# Escherify v1
 
-Easy website editor for your Mathematica-style Escher **single-image transform** script.
+Escherify v1 is a simple website that lets you upload one image and generate an Escher-style transformed still image.
 
 ## Quick start (Mac)
 
-1. Open `escher.html` directly in browser, or run:
+1. In Terminal, go to this folder.
+2. Run:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-2. Visit <http://localhost:8080>.
-3. Upload your image and edit sliders live.
+3. Open <http://localhost:8080>.
+4. Click **Open Escherify v1**.
 
-## Controls mapped to your Mathematica code
+## Workflow
 
-- **Center X / Center Y** -> `centerPx`
-- **Zoom** -> `zoom`
-- **Branch direction** -> `branchDir`
-- **q parameter** -> `q` (used to compute `alpha = 1 - i log(q)/(2π)`)
-- **Preview quality** -> speed vs detail (for faster live editing)
-
-Click on the preview image to set center quickly.
-Use **Download PNG** for full-quality output.
-
-## Notes
-
-- This tool produces one transformed still image (not a loop player).
-- Top-right badge in the app shows the current version and the file's last edit timestamp.
+1. Upload your image.
+2. Tune parameters live:
+   - Center X / Center Y
+   - Zoom
+   - Branch direction
+   - q parameter
+   - Preview quality
+3. Click on preview to place the center quickly.
+4. Use **Download PNG** to export a full-quality image.
