@@ -1,6 +1,6 @@
 # escher-laptop-loop
 
-Easy website version of your Mathematica Escher recursion script.
+Easy website editor for your Mathematica-style Escher **single-image transform** script.
 
 ## Quick start (Mac)
 
@@ -23,3 +23,8 @@ python3 -m http.server 8080
 
 Click on the preview image to set center quickly.
 Use **Download PNG** for full-quality output.
+
+## Notes
+
+- This tool produces one transformed still image (not a loop player).
+- Top-right badge in the app shows the current version and the file's last edit timestamp.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Escher Recursion Playground</title>
+  <title>Escher Image Transform Studio</title>
   <style>
     :root {
       color-scheme: dark;
@@ -20,6 +20,21 @@
       background: radial-gradient(circle at top, #1b2230, var(--bg) 46%);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    .meta {
+      position: fixed;
+      top: 10px;
+      right: 12px;
+      z-index: 20;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: .78rem;
+      color: var(--muted);
+      background: rgba(12, 16, 25, .9);
+      backdrop-filter: blur(3px);
+      text-align: right;
+      line-height: 1.35;
     }
     .wrap {
       max-width: 1360px;
@@ -72,10 +87,11 @@
   </style>
 </head>
 <body>
+  <aside class="meta" id="meta">Version --<br/>Last edit --</aside>
   <main class="wrap">
     <section class="panel">
-      <h1>Escher Recursion Playground</h1>
-      <p class="small">This is your Mathematica setup turned into live website controls. Upload an image, drag/tweak values, and preview instantly.</p>
+      <h1>Escher Image Transform Studio</h1>
+      <p class="small">Upload one image and apply the paper-style branch transform directly. Adjust parameters and export one transformed image.</p>
 
       <div class="control">
         <label for="file">Image</label>
@@ -117,7 +133,7 @@
         <button id="reset">Reset defaults</button>
         <button id="download">Download PNG</button>
       </div>
-      <p class="tip">Tip: click on the preview to place Center X/Y directly.</p>
+      <p class="tip">Tip: click on the preview to place Center X/Y directly. This tool creates a single transformed still image.</p>
     </section>
 
     <section class="panel">
@@ -144,7 +160,8 @@
       reset: document.getElementById('reset'),
       download: document.getElementById('download'),
       status: document.getElementById('status'),
-      canvas: document.getElementById('canvas')
+      canvas: document.getElementById('canvas'),
+      meta: document.getElementById('meta')
     };
 
     const ctx = el.canvas.getContext('2d', { willReadFrequently: true });
@@ -153,6 +170,7 @@
 
     let loaded = false;
     let renderToken = 0;
+    const APP_VERSION = 'v2.1.0';
 
     const defaults = {
       centerX: 567,
@@ -172,33 +190,10 @@
       el.qualityVal.textContent = Number(el.quality.value).toFixed(2);
     }
 
-    const c = {
-      add: (a, b) => ({ re: a.re + b.re, im: a.im + b.im }),
-      sub: (a, b) => ({ re: a.re - b.re, im: a.im - b.im }),
-      mul: (a, b) => ({ re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re }),
-      div: (a, b) => {
-        const d = b.re * b.re + b.im * b.im;
-        return { re: (a.re * b.re + a.im * b.im) / d, im: (a.im * b.re - a.re * b.im) / d };
-      },
-      abs: (a) => Math.hypot(a.re, a.im),
-      exp: (a) => {
-        const e = Math.exp(a.re);
-        return { re: e * Math.cos(a.im), im: e * Math.sin(a.im) };
-      },
-      log: (a) => ({ re: Math.log(Math.hypot(a.re, a.im)), im: Math.atan2(a.im, a.re) })
-    };
-
     function toComplex(x, y, n) {
       return {
         re: -1 + 2 * (x - 1) / (n - 1),
         im: 1 - 2 * (y - 1) / (n - 1)
-      };
-    }
-
-    function toPixel(z, n) {
-      return {
-        x: 1 + (z.re + 1) * (n - 1) / 2,
-        y: 1 + (1 - z.im) * (n - 1) / 2
       };
     }
 
@@ -248,33 +243,61 @@
       const dst = out.data;
 
       const q = Number(el.q.value);
-      const alpha = { re: 1, im: -Math.log(q) / (2 * Math.PI) };
+      const alphaRe = 1;
+      const alphaIm = -Math.log(q) / (2 * Math.PI);
+      const alphaDen = alphaRe * alphaRe + alphaIm * alphaIm;
       const zoom = Number(el.zoom.value);
       const theta = Number(el.branch.value) * Math.PI / 180;
-      const rot = { re: Math.cos(theta), im: Math.sin(theta) };
-      const rotInv = { re: Math.cos(-theta), im: Math.sin(-theta) };
-      const zCenter = toComplex(Number(el.centerX.value), Number(el.centerY.value), n);
+      const rotRe = Math.cos(theta);
+      const rotIm = Math.sin(theta);
+      const rotInvRe = rotRe;
+      const rotInvIm = -rotIm;
+      const centerX = Number(el.centerX.value);
+      const centerY = Number(el.centerY.value);
+      const zCenter = toComplex(centerX, centerY, n);
       const eps = 1e-12;
+      const xScale = (n - 1) / Math.max(1, (outN - 1));
+      const yScale = (n - 1) / Math.max(1, (outN - 1));
+      const pxScale = (n - 1) / 2;
 
       const t0 = performance.now();
 
-      for (let oy = 1; oy <= outN; oy++) {
-        for (let ox = 1; ox <= outN; ox++) {
-          const w = toComplex(1 + (ox - 1) * (n - 1) / (outN - 1), 1 + (oy - 1) * (n - 1) / (outN - 1), n);
-          const u = c.sub(w, zCenter);
+      for (let oy = 0; oy < outN; oy++) {
+        const py = 1 + oy * yScale;
+        const wIm = 1 - 2 * (py - 1) / (n - 1);
+        for (let ox = 0; ox < outN; ox++) {
+          const px = 1 + ox * xScale;
+          const wRe = -1 + 2 * (px - 1) / (n - 1);
+          const uRe = wRe - zCenter.re;
+          const uIm = wIm - zCenter.im;
 
-          let srcPx;
-          if (c.abs(u) < eps) {
-            srcPx = { x: Number(el.centerX.value), y: Number(el.centerY.value) };
-          } else {
-            const u2 = c.mul(u, rotInv);
-            const mapped = c.mul(rot, c.exp(c.div(c.log(u2), alpha)));
-            const z = c.add(zCenter, { re: zoom * mapped.re, im: zoom * mapped.im });
-            srcPx = toPixel(z, n);
+          let srcX = centerX;
+          let srcY = centerY;
+
+          if (Math.hypot(uRe, uIm) >= eps) {
+            const u2Re = uRe * rotInvRe - uIm * rotInvIm;
+            const u2Im = uRe * rotInvIm + uIm * rotInvRe;
+
+            const logRe = Math.log(Math.hypot(u2Re, u2Im));
+            const logIm = Math.atan2(u2Im, u2Re);
+            const divRe = (logRe * alphaRe + logIm * alphaIm) / alphaDen;
+            const divIm = (logIm * alphaRe - logRe * alphaIm) / alphaDen;
+
+            const expMul = Math.exp(divRe);
+            const expRe = expMul * Math.cos(divIm);
+            const expIm = expMul * Math.sin(divIm);
+
+            const mappedRe = rotRe * expRe - rotIm * expIm;
+            const mappedIm = rotRe * expIm + rotIm * expRe;
+            const zRe = zCenter.re + zoom * mappedRe;
+            const zIm = zCenter.im + zoom * mappedIm;
+
+            srcX = 1 + (zRe + 1) * pxScale;
+            srcY = 1 + (1 - zIm) * pxScale;
           }
 
-          const rgba = sampleBilinear(src, n, n, srcPx.x, srcPx.y);
-          const di = ((oy - 1) * outN + (ox - 1)) * 4;
+          const rgba = sampleBilinear(src, n, n, srcX, srcY);
+          const di = (oy * outN + ox) * 4;
           dst[di] = rgba[0];
           dst[di + 1] = rgba[1];
           dst[di + 2] = rgba[2];
@@ -359,6 +382,9 @@
     });
 
     setLabels();
+    const lastEdit = new Date(document.lastModified);
+    const lastEditPretty = Number.isNaN(lastEdit.getTime()) ? 'Unknown' : lastEdit.toLocaleString();
+    el.meta.innerHTML = `Version ${APP_VERSION}<br/>Last edit ${lastEditPretty}`;
   </script>
 </body>
 </html>
