@@ -1,4 +1,4 @@
-# Escherify v1
+# Escherify v1 (Fresh Build)
 
 Simple local website for turning one image into an Escher-style transformed image.
 
@@ -8,7 +8,7 @@ Simple local website for turning one image into an Escher-style transformed imag
 python3 -m http.server 8080
 ```
 
-Open <http://localhost:8080> and click **Open Escherify v1**.
+Open <http://localhost:8080> and click **Open Escherify v1 (Fresh Build)**.
 
 ## Use
 
