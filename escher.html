@@ -5,112 +5,87 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Escherify v1</title>
   <style>
-    :root {
-      --bg: #0b0d12;
-      --panel: #151a24;
-      --text: #ecf0f7;
-      --muted: #9da8c0;
-      --accent: #ff4d4d;
-      --border: #2c3448;
-    }
-    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: radial-gradient(circle at top, #1a2230, var(--bg) 48%);
-      color: var(--text);
-      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #10131a;
+      color: #eef2ff;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #2d3548;
+      background: #161b26;
+      position: sticky;
+      top: 0;
     }
     .meta {
-      position: fixed;
-      top: 10px;
-      right: 12px;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: rgba(12, 15, 24, 0.9);
       font-size: 12px;
-      color: var(--muted);
-      line-height: 1.35;
+      color: #9facbf;
       text-align: right;
-      z-index: 100;
+      line-height: 1.35;
     }
-    .app {
-      max-width: 1400px;
+    .wrap {
+      max-width: 1300px;
       margin: 0 auto;
-      padding: 18px;
+      padding: 14px;
       display: grid;
-      grid-template-columns: 360px 1fr;
-      gap: 14px;
+      grid-template-columns: 340px 1fr;
+      gap: 12px;
     }
     .panel {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: color-mix(in oklab, var(--panel), #000 8%);
-      padding: 14px;
+      background: #161b26;
+      border: 1px solid #2d3548;
+      border-radius: 10px;
+      padding: 12px;
     }
-    h1 {
-      margin: 0 0 6px;
-      font-size: 1.25rem;
-    }
-    .sub {
-      margin: 0 0 12px;
-      color: var(--muted);
-      line-height: 1.4;
-      font-size: .92rem;
-    }
-    .control { margin: 0 0 11px; }
+    .control { margin-bottom: 10px; }
     .control label {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 6px;
-      font-size: .9rem;
+      margin-bottom: 4px;
+      font-size: 14px;
+      color: #d8deef;
     }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     input, button { width: 100%; }
-    input[type="range"] { accent-color: var(--accent); }
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
+    input[type="range"] { accent-color: #ff4d4d; }
     button {
-      border: 1px solid #4b5670;
-      background: #20283a;
-      color: var(--text);
-      border-radius: 9px;
-      padding: 10px;
-      font-weight: 650;
+      border: 1px solid #3f4a62;
+      background: #212a3c;
+      color: #eef2ff;
+      border-radius: 8px;
+      padding: 9px;
+      font-weight: 700;
       cursor: pointer;
     }
     canvas {
-      display: block;
       width: 100%;
       height: auto;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #0f141d;
+      border-radius: 10px;
+      border: 1px solid #2d3548;
+      background: #0f141f;
+      display: block;
     }
-    .status {
-      color: var(--muted);
-      font-size: .9rem;
-      margin-bottom: 8px;
-      min-height: 1.2rem;
-    }
-    @media (max-width: 1024px) {
-      .app { grid-template-columns: 1fr; }
-    }
+    .status { color: #9facbf; font-size: 14px; margin-bottom: 8px; min-height: 20px; }
+    .hint { color: #9facbf; font-size: 13px; margin-top: 8px; }
+    @media (max-width: 980px) { .wrap { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-  <aside id="meta" class="meta">Escherify v1<br/>Last edit --</aside>
+  <header class="top">
+    <strong>Escherify v1</strong>
+    <div class="meta" id="meta">Version v1<br/>Last edit --</div>
+  </header>
 
-  <main class="app">
+  <main class="wrap">
     <section class="panel">
-      <h1>Escherify v1</h1>
-      <p class="sub">Upload a single image, adjust parameters live, and export an Escher-style transformed image.</p>
+      <p style="margin-top:0;color:#b8c3d8">Upload one image, tweak controls, and export one transformed image.</p>
 
       <div class="control">
-        <label for="file">Image upload</label>
+        <label for="file">Image</label>
         <input id="file" type="file" accept="image/*" />
       </div>
 
@@ -127,7 +102,7 @@
 
       <div class="control">
         <label for="zoom"><span>Zoom</span><strong id="zoomVal">0.800</strong></label>
-        <input id="zoom" type="range" min="0.70" max="1.10" step="0.001" value="0.80" />
+        <input id="zoom" type="range" min="0.70" max="1.10" step="0.001" value="0.8" />
       </div>
 
       <div class="control">
@@ -142,24 +117,26 @@
 
       <div class="control">
         <label for="quality"><span>Preview quality</span><strong id="qualityVal">0.70</strong></label>
-        <input id="quality" type="range" min="0.25" max="1" step="0.05" value="0.70" />
+        <input id="quality" type="range" min="0.25" max="1" step="0.05" value="0.7" />
       </div>
 
       <div class="row">
-        <button id="reset">Reset defaults</button>
+        <button id="reset">Reset</button>
         <button id="download">Download PNG</button>
       </div>
-      <p class="sub" style="margin-top:10px">Tip: click on the preview to set center quickly.</p>
+
+      <p class="hint">Tip: click the preview to place center quickly.</p>
     </section>
 
     <section class="panel">
-      <div id="status" class="status">Upload an image to begin.</div>
+      <div class="status" id="status">Upload an image to start.</div>
       <canvas id="canvas" width="900" height="900"></canvas>
     </section>
   </main>
 
   <script>
-    const APP_VERSION = 'Escherify v1';
+    const APP_VERSION = 'v1';
+    const defaults = { centerX: 600, centerY: 600, zoom: 0.8, branch: 160, q: 22.5836845286, quality: 0.7 };
 
     const el = {
       file: document.getElementById('file'),
@@ -182,19 +159,9 @@
       meta: document.getElementById('meta')
     };
 
-    const defaults = {
-      centerX: 600,
-      centerY: 600,
-      zoom: 0.8,
-      branch: 160,
-      q: 22.5836845286,
-      quality: 0.7
-    };
-
     const srcCanvas = document.createElement('canvas');
     const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
     const ctx = el.canvas.getContext('2d', { willReadFrequently: true });
-
     let loaded = false;
     let renderToken = 0;
 
@@ -208,49 +175,29 @@
     }
 
     function toComplex(x, y, n) {
-      return {
-        re: -1 + (2 * (x - 1)) / (n - 1),
-        im: 1 - (2 * (y - 1)) / (n - 1)
-      };
+      return { re: -1 + (2 * (x - 1)) / (n - 1), im: 1 - (2 * (y - 1)) / (n - 1) };
     }
 
     function sampleBilinear(src, width, height, x, y) {
-      if (x < 1 || x > width || y < 1 || y > height) return [255, 255, 255, 255];
-      const fx = x - 1;
-      const fy = y - 1;
+      if (x < 1 || x > width || y < 1 || y > height) return [255, 255, 255];
+      const fx = x - 1, fy = y - 1;
       const x0 = Math.floor(fx), y0 = Math.floor(fy);
       const x1 = Math.min(x0 + 1, width - 1), y1 = Math.min(y0 + 1, height - 1);
       const dx = fx - x0, dy = fy - y0;
-
-      const i00 = (y0 * width + x0) * 4;
-      const i10 = (y0 * width + x1) * 4;
-      const i01 = (y1 * width + x0) * 4;
-      const i11 = (y1 * width + x1) * 4;
-
-      const out = [0, 0, 0, 255];
+      const i00 = (y0 * width + x0) * 4, i10 = (y0 * width + x1) * 4, i01 = (y1 * width + x0) * 4, i11 = (y1 * width + x1) * 4;
+      const rgb = [0, 0, 0];
       for (let k = 0; k < 3; k++) {
         const a = src[i00 + k] * (1 - dx) + src[i10 + k] * dx;
         const b = src[i01 + k] * (1 - dx) + src[i11 + k] * dx;
-        out[k] = a * (1 - dy) + b * dy;
+        rgb[k] = a * (1 - dy) + b * dy;
       }
-      return out;
-    }
-
-    function requestRender() {
-      if (!loaded) return;
-      const token = ++renderToken;
-      requestAnimationFrame(() => {
-        if (token !== renderToken) return;
-        render();
-      });
+      return rgb;
     }
 
     function render(forceFull = false) {
       if (!loaded) return;
-
       const n = srcCanvas.width;
-      const quality = forceFull ? 1 : Number(el.quality.value);
-      const outN = Math.max(200, Math.floor(n * quality));
+      const outN = Math.max(220, Math.floor(n * (forceFull ? 1 : Number(el.quality.value))));
       el.canvas.width = outN;
       el.canvas.height = outN;
 
@@ -262,75 +209,61 @@
       const alphaRe = 1;
       const alphaIm = -Math.log(q) / (2 * Math.PI);
       const alphaDen = alphaRe * alphaRe + alphaIm * alphaIm;
-
-      const theta = (Number(el.branch.value) * Math.PI) / 180;
-      const rotRe = Math.cos(theta);
-      const rotIm = Math.sin(theta);
-      const invRe = rotRe;
-      const invIm = -rotIm;
-
+      const theta = Number(el.branch.value) * Math.PI / 180;
+      const rotRe = Math.cos(theta), rotIm = Math.sin(theta);
+      const invRe = rotRe, invIm = -rotIm;
       const zoom = Number(el.zoom.value);
-      const centerX = Number(el.centerX.value);
-      const centerY = Number(el.centerY.value);
+      const centerX = Number(el.centerX.value), centerY = Number(el.centerY.value);
       const zCenter = toComplex(centerX, centerY, n);
-
-      const xScale = (n - 1) / Math.max(1, outN - 1);
-      const yScale = (n - 1) / Math.max(1, outN - 1);
+      const scale = (n - 1) / Math.max(1, outN - 1);
       const pixScale = (n - 1) / 2;
       const eps = 1e-12;
-
       const t0 = performance.now();
 
       for (let oy = 0; oy < outN; oy++) {
-        const py = 1 + oy * yScale;
+        const py = 1 + oy * scale;
         const wIm = 1 - (2 * (py - 1)) / (n - 1);
-
         for (let ox = 0; ox < outN; ox++) {
-          const px = 1 + ox * xScale;
+          const px = 1 + ox * scale;
           const wRe = -1 + (2 * (px - 1)) / (n - 1);
-
           const uRe = wRe - zCenter.re;
           const uIm = wIm - zCenter.im;
-
-          let srcX = centerX;
-          let srcY = centerY;
+          let srcX = centerX, srcY = centerY;
 
           if (Math.hypot(uRe, uIm) >= eps) {
             const u2Re = uRe * invRe - uIm * invIm;
             const u2Im = uRe * invIm + uIm * invRe;
-
             const logRe = Math.log(Math.hypot(u2Re, u2Im));
             const logIm = Math.atan2(u2Im, u2Re);
-
             const divRe = (logRe * alphaRe + logIm * alphaIm) / alphaDen;
             const divIm = (logIm * alphaRe - logRe * alphaIm) / alphaDen;
-
-            const expMul = Math.exp(divRe);
-            const expRe = expMul * Math.cos(divIm);
-            const expIm = expMul * Math.sin(divIm);
-
-            const mappedRe = rotRe * expRe - rotIm * expIm;
-            const mappedIm = rotRe * expIm + rotIm * expRe;
-
-            const zRe = zCenter.re + zoom * mappedRe;
-            const zIm = zCenter.im + zoom * mappedIm;
-
+            const expMag = Math.exp(divRe);
+            const expRe = expMag * Math.cos(divIm);
+            const expIm = expMag * Math.sin(divIm);
+            const mapRe = rotRe * expRe - rotIm * expIm;
+            const mapIm = rotRe * expIm + rotIm * expRe;
+            const zRe = zCenter.re + zoom * mapRe;
+            const zIm = zCenter.im + zoom * mapIm;
             srcX = 1 + (zRe + 1) * pixScale;
             srcY = 1 + (1 - zIm) * pixScale;
           }
 
-          const rgba = sampleBilinear(src, n, n, srcX, srcY);
+          const rgb = sampleBilinear(src, n, n, srcX, srcY);
           const di = (oy * outN + ox) * 4;
-          dst[di] = rgba[0];
-          dst[di + 1] = rgba[1];
-          dst[di + 2] = rgba[2];
-          dst[di + 3] = 255;
+          dst[di] = rgb[0]; dst[di + 1] = rgb[1]; dst[di + 2] = rgb[2]; dst[di + 3] = 255;
         }
       }
 
       ctx.putImageData(out, 0, 0);
-      const ms = Math.round(performance.now() - t0);
-      el.status.textContent = `Rendered ${outN}×${outN} in ~${ms}ms.`;
+      el.status.textContent = `Rendered ${outN}×${outN} in ~${Math.round(performance.now() - t0)}ms`;
+    }
+
+    function requestRender() {
+      if (!loaded) return;
+      const token = ++renderToken;
+      requestAnimationFrame(() => {
+        if (token === renderToken) render(false);
+      });
     }
 
     function loadImage(file) {
@@ -338,16 +271,12 @@
       const img = new Image();
       img.onload = () => {
         const n = Math.min(img.width, img.height, 1600);
-        srcCanvas.width = n;
-        srcCanvas.height = n;
+        srcCanvas.width = n; srcCanvas.height = n;
         srcCtx.clearRect(0, 0, n, n);
         srcCtx.drawImage(img, 0, 0, n, n);
-
-        el.centerX.max = n;
-        el.centerY.max = n;
+        el.centerX.max = n; el.centerY.max = n;
         el.centerX.value = Math.round(Math.min(defaults.centerX, n));
         el.centerY.value = Math.round(Math.min(defaults.centerY, n));
-
         loaded = true;
         setLabels();
         requestRender();
@@ -356,12 +285,8 @@
     }
 
     el.file.addEventListener('change', (e) => loadImage(e.target.files?.[0]));
-
-    [el.centerX, el.centerY, el.zoom, el.branch, el.q, el.quality].forEach((control) => {
-      control.addEventListener('input', () => {
-        setLabels();
-        requestRender();
-      });
+    [el.centerX, el.centerY, el.zoom, el.branch, el.q, el.quality].forEach((node) => {
+      node.addEventListener('input', () => { setLabels(); requestRender(); });
     });
 
     el.canvas.addEventListener('click', (e) => {
@@ -401,8 +326,7 @@
     });
 
     const lastEdit = new Date(document.lastModified);
-    const lastEditText = Number.isNaN(lastEdit.getTime()) ? 'Unknown' : lastEdit.toLocaleString();
-    el.meta.innerHTML = `${APP_VERSION}<br/>Last edit ${lastEditText}`;
+    el.meta.innerHTML = `Version ${APP_VERSION}<br/>Last edit ${Number.isNaN(lastEdit.getTime()) ? 'Unknown' : lastEdit.toLocaleString()}`;
     setLabels();
   </script>
 </body>

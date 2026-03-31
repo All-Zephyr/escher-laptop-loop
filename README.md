@@ -1,27 +1,18 @@
 # Escherify v1
 
-Escherify v1 is a simple website that lets you upload one image and generate an Escher-style transformed still image.
+Simple local website for turning one image into an Escher-style transformed image.
 
-## Quick start (Mac)
-
-1. In Terminal, go to this folder.
-2. Run:
+## Run on your Mac
 
 ```bash
 python3 -m http.server 8080
 ```
 
-3. Open <http://localhost:8080>.
-4. Click **Open Escherify v1**.
+Open <http://localhost:8080> and click **Open Escherify v1**.
 
-## Workflow
+## Use
 
 1. Upload your image.
-2. Tune parameters live:
-   - Center X / Center Y
-   - Zoom
-   - Branch direction
-   - q parameter
-   - Preview quality
-3. Click on preview to place the center quickly.
-4. Use **Download PNG** to export a full-quality image.
+2. Tweak Center, Zoom, Branch direction, q, and Preview quality.
+3. Click the image to quickly move center.
+4. Press **Download PNG** for full quality export.
